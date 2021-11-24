@@ -1,13 +1,10 @@
 import logging
-import os
-import traceback
 
 import disnake
 from disnake.ext import commands
 
-from bookwyrm import db
+from bookwyrm import config, db
 
-TOKEN = os.getenv("TOKEN")
 COGS = ('cogs.weather',)
 
 logging.basicConfig(level=logging.INFO)
@@ -49,4 +46,4 @@ for cog in COGS:
 
 if __name__ == '__main__':
     bot.loop.create_task(db.init_db())
-    bot.run(TOKEN)
+    bot.run(config.TOKEN)

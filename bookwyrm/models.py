@@ -13,6 +13,8 @@ class Biome(Base):
     city_id = Column(Integer, nullable=False)
     image_url = Column(String, nullable=True)
 
+    channels = relationship("ChannelMap", back_populates="biome")
+
     def __repr__(self):
         return (f"<{type(self).__name__} id={self.id!r} guild_id={self.guild_id!r} name={self.name!r} "
                 f"city_id={self.city_id!r} image_url={self.image_url!r}>")
@@ -24,7 +26,7 @@ class ChannelMap(Base):
     channel_id = Column(BigInteger, primary_key=True)
     biome_id = Column(Integer, ForeignKey("biomes.id", ondelete="CASCADE"))
 
-    biome = relationship(Biome)
+    biome = relationship("Biome", back_populates="channels")
 
     def __repr__(self):
         return f"<{type(self).__name__} id={self.id!r} biome_id={self.biome_id!r}>"

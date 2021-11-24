@@ -1,18 +1,21 @@
 from typing import Any
 
+import aiohttp
 import disnake
 from disnake.ext import commands
 from sqlalchemy import delete
 
-from bookwyrm import db, models
+from bookwyrm import config, db, models
 from . import utils
-from .params import biome_param, city_param
 from .city import CityRepository
+from .client import WeatherClient
+from .params import biome_param, city_param
 
 
 class Weather(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+        self.client = WeatherClient(aiohttp.ClientSession(loop=bot.loop), config.WEATHER_API_KEY)
 
     async def cog_slash_command_check(self, inter: disnake.ApplicationCommandInteraction) -> bool:
         """All weather commands must be run in a guild"""
@@ -27,8 +30,20 @@ class Weather(commands.Cog):
         inter: disnake.ApplicationCommandInteraction,
         biome: Any = biome_param(None, desc="The ID of the biome to get the weather of")
     ):
-        pass
-        # hTTP https://api.openweathermap.org/data/2.5/weather?id=12345&appid=0f2223471182591c54d4721271e15f99
+        # specific biome
+        if biome is not None:
+            biome_weather = await self.client.get_current_weather_by_city_id(biome.city_id)
+            await inter.send(embed=utils.weather_embed(biome, biome_weather))
+            return
+
+        # channel biome
+        async with db.async_session() as session:
+            channel_link = await utils.get_channel_map_by_id(session, inter.channel_id, load_biome=True)
+        if channel_link is None:
+            await inter.send("This channel is not linked to a biome")
+            return
+        biome_weather = await self.client.get_current_weather_by_city_id(channel_link.biome.city_id)
+        await inter.send(embed=utils.weather_embed(channel_link.biome, biome_weather))
 
     # ==== admin ====
     @commands.slash_command(name='weatheradmin', description="Create/remove biomes and channel links")
@@ -43,12 +58,32 @@ class Weather(commands.Cog):
         pass
 
     @weatheradmin_channel.sub_command(name='link', description="Link a channel to a biome")
-    async def weatheradmin_channel_link(self, inter: disnake.ApplicationCommandInteraction):
-        pass
+    async def weatheradmin_channel_link(
+        self,
+        inter: disnake.ApplicationCommandInteraction,
+        channel: disnake.TextChannel = commands.Param(desc="A text channel to link"),
+        biome: Any = biome_param(desc="The biome the channel should use for weather")
+    ):
+        async with db.async_session() as session:
+            existing = await utils.get_channel_map_by_id(session, channel.id)
+            if existing:
+                existing.biome = biome
+            else:
+                new_link = models.ChannelMap(channel_id=channel.id, biome=biome)
+                session.add(new_link)
+            await session.commit()
+        await inter.send(f"Linked {channel.mention} to **{biome.name}**.")
 
     @weatheradmin_channel.sub_command(name='unlink', description="Unlink a channel from a biome")
-    async def weatheradmin_channel_unlink(self, inter: disnake.ApplicationCommandInteraction):
-        pass
+    async def weatheradmin_channel_unlink(
+        self,
+        inter: disnake.ApplicationCommandInteraction,
+        channel: disnake.TextChannel = commands.Param(desc="A text channel to unlink")
+    ):
+        async with db.async_session() as session:
+            await session.execute(delete(models.ChannelMap).where(models.ChannelMap.channel_id == channel.id))
+            await session.commit()
+        await inter.send(f"Deleted any channel link in {channel.mention}.")
 
     # ---- biome ----
     @weatheradmin.sub_command_group(name='biome')
@@ -58,7 +93,7 @@ class Weather(commands.Cog):
     @weatheradmin_biome.sub_command(name='list', description="Lists the biomes and their IDs")
     async def weatheradmin_biome_list(self, inter: disnake.ApplicationCommandInteraction):
         async with db.async_session() as session:
-            biomes = await utils.get_biomes_by_guild(session, inter.guild_id)
+            biomes = await utils.get_biomes_by_guild(session, inter.guild_id, load_channel_links=True)
         if not biomes:
             await inter.send("This server has no biomes. Make some with `/weatheradmin biome create`.")
             return
@@ -66,6 +101,12 @@ class Weather(commands.Cog):
         for biome in biomes:
             biome_city = CityRepository.get_city(biome.city_id)
             out.append(f'`{biome.id}` - **{biome.name}** (Weather from {biome_city.name}, {biome_city.state})')
+            if biome.channels:
+                for channel_link in biome.channels:
+                    out.append(f"<#{channel_link.channel_id}>")
+            else:
+                out.append("No linked channels")
+            out.append('')
         await inter.send('\n'.join(out))
 
     @weatheradmin_biome.sub_command(name='create', description="Create a new biome")
