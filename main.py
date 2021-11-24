@@ -5,7 +5,7 @@ from disnake.ext import commands
 
 from bookwyrm import config, db
 
-COGS = ('cogs.weather',)
+COGS = ('bookwyrm.cogs.weather',)
 
 logging.basicConfig(level=logging.INFO)
 
@@ -20,7 +20,7 @@ bot = Bookwyrm(
     command_prefix=commands.when_mentioned,
     intents=intents,
     sync_commands_debug=True,
-    test_guilds=[810637213171449876],  # zhu.server
+    test_guilds=[810637213171449876, 912886971934863380],
 )
 
 

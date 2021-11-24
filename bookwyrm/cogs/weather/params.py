@@ -24,8 +24,12 @@ async def city_autocomplete(
 
 
 def city_converter(_: disnake.ApplicationCommandInteraction, arg: str) -> City:
-    _, city_id = arg.rsplit('- ', 1)
-    city = CityRepository.get_city(int(city_id))
+    try:
+        _, city_id = arg.rsplit('- ', 1)
+        city_id = int(city_id)
+    except ValueError as e:
+        raise ValueError("Invalid city selection") from e
+    city = CityRepository.get_city(city_id)
     if city is None:
         raise ValueError("That city doesn't exist")
     return city
@@ -55,7 +59,11 @@ async def biome_autocomplete(
 
 
 async def biome_converter(_: disnake.ApplicationCommandInteraction, arg: str) -> models.Biome:
-    _, biome_id = arg.rsplit('- ', 1)
+    try:
+        _, biome_id = arg.rsplit('- ', 1)
+        biome_id = int(biome_id)
+    except ValueError as e:
+        raise ValueError("Invalid biome selection") from e
     async with db.async_session() as session:
         biome = await utils.get_biome_by_id(session, biome_id)
     return biome
