@@ -1,7 +1,11 @@
+import os
+
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import declarative_base, sessionmaker
 
-engine = create_async_engine('sqlite+aiosqlite:///../data/bookwyrm.db', echo=False)
+DATA_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../data/bookwyrm.db')
+
+engine = create_async_engine(f'sqlite+aiosqlite:///{DATA_PATH}', echo=False)
 async_session = sessionmaker(
     autocommit=False,
     autoflush=False,
