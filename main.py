@@ -20,7 +20,10 @@ bot = Bookwyrm(
     command_prefix=commands.when_mentioned,
     intents=intents,
     sync_commands_debug=True,
-    test_guilds=[810637213171449876, 912886971934863380],
+    test_guilds=[
+        810637213171449876,  # server.exe
+        862504698341490709,  # tyre
+    ],
 )
 
 
