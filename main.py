@@ -23,6 +23,7 @@ bot = Bookwyrm(
     test_guilds=[
         810637213171449876,  # server.exe
         862504698341490709,  # tyre
+        912886971934863380,  # weather beep boop
     ],
 )
 

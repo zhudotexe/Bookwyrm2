@@ -54,6 +54,7 @@ class CurrentWeather(BaseModel):
 
 
 # ==== weather codes ====
+# https://openweathermap.org/weather-conditions
 WEATHER_DESC = {
     200: "It's thundering, with light rain.",
     201: "It's thundering, with rain.",
