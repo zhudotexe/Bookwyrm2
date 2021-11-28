@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, Union
 
 import aiohttp
 import disnake
@@ -40,7 +40,7 @@ class Weather(commands.Cog):
         async with db.async_session() as session:
             channel_link = await utils.get_channel_map_by_id(session, inter.channel_id, load_biome=True)
         if channel_link is None:
-            await inter.send("This channel is not linked to a biome")
+            await inter.send("This channel is not linked to a biome", ephemeral=True)
             return
         biome_weather = await self.client.get_current_weather_by_city_id(channel_link.biome.city_id)
         await inter.send(embed=utils.weather_embed(channel_link.biome, biome_weather))
