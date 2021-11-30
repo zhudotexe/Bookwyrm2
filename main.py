@@ -5,7 +5,7 @@ from disnake.ext import commands
 
 from bookwyrm import config, db
 
-COGS = ('bookwyrm.cogs.weather',)
+COGS = ('bookwyrm.cogs.weather', 'bookwyrm.cogs.admin')
 
 logging.basicConfig(level=logging.INFO)
 
