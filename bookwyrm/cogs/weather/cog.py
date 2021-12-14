@@ -37,8 +37,13 @@ class Weather(commands.Cog):
             return
 
         # channel biome
+        if isinstance(inter.channel, disnake.Thread):
+            channel_id = inter.channel.parent_id
+        else:
+            channel_id = inter.channel_id
+
         async with db.async_session() as session:
-            channel_link = await utils.get_channel_map_by_id(session, inter.channel_id, load_biome=True)
+            channel_link = await utils.get_channel_map_by_id(session, channel_id, load_biome=True)
         if channel_link is None:
             await inter.send("This channel is not linked to a biome", ephemeral=True)
             return
