@@ -38,14 +38,18 @@ async def get_channel_map_by_id(session, channel_id: int, load_biome=False) -> O
     return result.scalar()
 
 
-def ktof(deg_k: float):
+def k_to_f(deg_k: float):
     """Kelvin to Fahrenheit"""
     return deg_k * 1.8 - 459.67
 
 
-def mstomph(ms: float):
+def ms_to_mph(ms: float):
     """m/s to mph"""
     return ms * 2.237
+
+
+def m_to_ft(meters: float):
+    return meters * 3.281
 
 
 def weather_embed(biome: models.Biome, weather: CurrentWeather) -> disnake.Embed:
@@ -86,17 +90,18 @@ def weather_embed(biome: models.Biome, weather: CurrentWeather) -> disnake.Embed
         wind_direction = "northwest"
 
     # visibility
-    if weather.visibility > 500:
+    if weather.visibility > 2000:
         visibility_desc = "good"
-    elif weather.visibility > 100:
+    elif weather.visibility > 500:
         visibility_desc = "fair"
     else:
         visibility_desc = "poor"
 
     embed.description = (
-        f"It's currently {int(ktof(weather.main.temp))}\u00b0F in {biome.name}. "
-        f"The wind is {wind_desc}, at {int(mstomph(weather.wind.speed))} mph towards the {wind_direction}. "
-        f"Visibility is {visibility_desc} with a humidity of {weather.main.humidity}%."
+        f"It's currently {int(k_to_f(weather.main.temp))}\u00b0F in {biome.name}. "
+        f"The wind is {wind_desc}, at {int(ms_to_mph(weather.wind.speed))} mph towards the {wind_direction}. "
+        f"Visibility is {visibility_desc} ({int(m_to_ft(weather.visibility))} ft.) "
+        f"with a humidity of {weather.main.humidity}%."
     )
 
     for weather_detail in weather.weather:
