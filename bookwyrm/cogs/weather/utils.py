@@ -90,6 +90,12 @@ def weather_embed(biome: models.Biome, weather: CurrentWeather) -> disnake.Embed
         wind_direction = "northwest"
 
     # visibility
+    visibility_ft = m_to_ft(weather.visibility)
+    if visibility_ft > 5280:
+        visibility_detail = f"{round(visibility_ft / 5280)} mi."
+    else:
+        visibility_detail = f"{int(visibility_ft)} ft."
+
     if weather.visibility > 2000:
         visibility_desc = "good"
     elif weather.visibility > 500:
@@ -100,8 +106,7 @@ def weather_embed(biome: models.Biome, weather: CurrentWeather) -> disnake.Embed
     embed.description = (
         f"It's currently {int(k_to_f(weather.main.temp))}\u00b0F in {biome.name}. "
         f"The wind is {wind_desc}, at {int(ms_to_mph(weather.wind.speed))} mph towards the {wind_direction}. "
-        f"Visibility is {visibility_desc} ({int(m_to_ft(weather.visibility))} ft.) "
-        f"with a humidity of {weather.main.humidity}%."
+        f"Visibility is {visibility_desc} ({visibility_detail}) with a humidity of {weather.main.humidity}%."
     )
 
     for weather_detail in weather.weather:
