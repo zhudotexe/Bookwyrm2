@@ -43,6 +43,11 @@ def k_to_f(deg_k: float):
     return deg_k * 1.8 - 459.67
 
 
+def k_to_c(deg_k: float):
+    """Kelvin to Celsius"""
+    return deg_k - 273.15
+
+
 def ms_to_mph(ms: float):
     """m/s to mph"""
     return ms * 2.237
@@ -64,6 +69,21 @@ def weather_embed(biome: models.Biome, weather: CurrentWeather) -> disnake.Embed
     if biome.image_url:
         embed.set_thumbnail(url=biome.image_url)
 
+    embed.description = (
+        f"It's currently {int(k_to_f(weather.main.temp))}\u00b0F ({int(k_to_c(weather.main.temp))}\u00b0C) "
+        f"in {biome.name}. {weather_desc(weather)}"
+    )
+
+    for weather_detail in weather.weather:
+        embed.add_field(
+            name=weather_detail.main,
+            value=WEATHER_DESC.get(weather_detail.id, weather_detail.description),
+            inline=False
+        )
+    return embed
+
+
+def weather_desc(weather: CurrentWeather) -> str:
     # wind
     if weather.wind.speed < 0.2:
         wind_desc = "calm"
@@ -103,16 +123,7 @@ def weather_embed(biome: models.Biome, weather: CurrentWeather) -> disnake.Embed
     else:
         visibility_desc = "poor"
 
-    embed.description = (
-        f"It's currently {int(k_to_f(weather.main.temp))}\u00b0F in {biome.name}. "
+    return (
         f"The wind is {wind_desc}, at {int(ms_to_mph(weather.wind.speed))} mph towards the {wind_direction}. "
         f"Visibility is {visibility_desc} ({visibility_detail}) with a humidity of {weather.main.humidity}%."
     )
-
-    for weather_detail in weather.weather:
-        embed.add_field(
-            name=weather_detail.main,
-            value=WEATHER_DESC.get(weather_detail.id, weather_detail.description),
-            inline=False
-        )
-    return embed
