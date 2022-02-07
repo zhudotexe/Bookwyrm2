@@ -30,11 +30,11 @@ class _WeatherWind(BaseModel):
 
 
 class _WeatherSystemInfo(BaseModel):
-    type: int
-    id: int
     country: str
     sunrise: datetime.datetime
     sunset: datetime.datetime
+    type: Optional[int]
+    id: Optional[int]
     message: Optional[Any]
 
 
