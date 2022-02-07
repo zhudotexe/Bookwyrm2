@@ -50,6 +50,28 @@ class Weather(commands.Cog):
         biome_weather = await self.client.get_current_weather_by_city_id(channel_link.biome.city_id)
         await inter.send(embed=utils.weather_embed(channel_link.biome, biome_weather))
 
+    @commands.slash_command(description="Shows the weather in all areas")
+    async def summary(self, inter: disnake.ApplicationCommandInteraction):
+        async with db.async_session() as session:
+            biomes = await utils.get_biomes_by_guild(session, inter.guild_id, load_channel_links=False)
+        if not biomes:
+            await inter.send("This server has no biomes set up", ephemeral=True)
+            return
+
+        embed = disnake.Embed()
+        embed.title = f"Current Weather in {inter.guild.name}"
+        embed.colour = disnake.Color.random()
+
+        for biome in biomes:
+            weather = await self.client.get_current_weather_by_city_id(biome.city_id)
+            biome_desc = (
+                f"{int(utils.k_to_f(weather.main.temp))}\u00b0F ({int(utils.k_to_c(weather.main.temp))}\u00b0C) - "
+                f"{', '.join(weather_detail.main for weather_detail in weather.weather)}"
+            )
+            embed.add_field(name=biome.name, value=biome_desc)
+
+        await inter.send(embed=embed)
+
     # ==== admin ====
     @commands.slash_command(name='weatheradmin', description="Create/remove biomes and channel links")
     async def weatheradmin(self, inter: disnake.ApplicationCommandInteraction):
