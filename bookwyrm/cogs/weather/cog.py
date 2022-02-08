@@ -58,6 +58,8 @@ class Weather(commands.Cog):
             await inter.send("This server has no biomes set up", ephemeral=True)
             return
 
+        await inter.response.defer()  # this could take a while
+
         embed = disnake.Embed()
         embed.title = f"Current Weather in {inter.guild.name}"
         embed.colour = disnake.Color.random()
