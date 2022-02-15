@@ -87,7 +87,7 @@ def weather_desc(weather: CurrentWeather) -> str:
     # wind
     if weather.wind.speed < 0.2:
         wind_desc = "calm"
-    elif weather.wind.speed < 10:
+    elif weather.wind.speed < 4.4:
         wind_desc = "light"
     else:
         wind_desc = "strong"
