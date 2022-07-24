@@ -1,6 +1,6 @@
 import disnake
 from disnake.ext import commands
-from thefuzz import fuzz, process
+from rapidfuzz import fuzz, process
 
 from bookwyrm import db, models
 from . import utils
